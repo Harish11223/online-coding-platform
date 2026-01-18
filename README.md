@@ -2,7 +2,7 @@
 
 A full-stack **online coding platform** (LeetCode-style) that allows users to write, run, and test code in multiple programming languages with real-time execution and output.
 
-The platform uses **Docker-based Judge0** running on **AWS EC2(Ubuntu)** for secure code execution, a **Node.js backend**, and a **React (Vite) frontend** with **Monaco Editor** for a VS Code–like experience.
+The platform uses **Docker-based Judge0** running on **AWS EC2(Ubuntu) instance** for secure code execution, a **Node.js backend**, and a **React (Vite) frontend** with **Monaco Editor** for a VS Code–like experience.
 
 ---
 
