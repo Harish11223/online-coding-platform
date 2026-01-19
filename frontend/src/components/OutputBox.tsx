@@ -1,4 +1,14 @@
-const OutputBox = ({ output, loading, onClear }) => {
+interface OutputBoxProps {
+  output: string;
+  loading: boolean;
+  onClear: () => void;
+}
+
+const OutputBox = ({
+  output,
+  loading,
+  onClear,
+}: OutputBoxProps) => {
   return (
     <div className="flex flex-col flex-grow bg-[#0c0c0c] border border-slate-800 rounded-xl overflow-hidden font-mono shadow-inner">
       {/* Terminal Header */}
@@ -9,9 +19,9 @@ const OutputBox = ({ output, loading, onClear }) => {
             Output Console
           </span>
         </div>
-        
+
         {output && (
-          <button 
+          <button
             onClick={onClear}
             className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors uppercase font-bold"
           >
@@ -27,14 +37,18 @@ const OutputBox = ({ output, loading, onClear }) => {
             <span className="animate-bounce">●</span>
             <span className="animate-bounce [animation-delay:0.2s]">●</span>
             <span className="animate-bounce [animation-delay:0.4s]">●</span>
-            <span className="text-sm ml-2 italic text-slate-500">Executing code...</span>
+            <span className="text-sm ml-2 italic text-slate-500">
+              Executing code...
+            </span>
           </div>
         ) : (
-          <pre className={`text-sm leading-relaxed whitespace-pre-wrap ${
-            output?.includes("Error") || output?.includes("❌") 
-              ? "text-rose-400" 
-              : "text-slate-300"
-          }`}>
+          <pre
+            className={`text-sm leading-relaxed whitespace-pre-wrap ${
+              output.includes("Error") || output.includes("❌")
+                ? "text-rose-400"
+                : "text-slate-300"
+            }`}
+          >
             {output || (
               <span className="text-slate-600 italic">
                 {">"} system: awaiting execution...
