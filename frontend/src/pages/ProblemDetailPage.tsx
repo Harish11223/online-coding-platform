@@ -1,20 +1,15 @@
-import {
-  useParams,
-  useNavigate,
-  useOutletContext,
-} from "react-router-dom";
-import { useEffect, useState, useCallback } from "react";
+import { useParams, useNavigate, useOutletContext } from "react-router-dom";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import axios from "axios";
 
 import CodeEditor from "../components/CodeEditor";
 import OutputBox from "../components/OutputBox";
-import LanguageSelector from "../components/LanguageSelector";
 
 import { Language } from "../types/language";
 import { TestCase, TestResult } from "../types/problem";
 
 /* =========================
-   Layout Context Type
+   Interfaces
    ========================= */
 interface LayoutContext {
   setOnRun: (fn?: () => void) => void;
@@ -24,9 +19,6 @@ interface LayoutContext {
   setDisableActions: (v: boolean) => void;
 }
 
-/* =========================
-   Problem Type
-   ========================= */
 interface Problem {
   id: number;
   title: string;
@@ -37,6 +29,17 @@ interface Problem {
     input: string;
     output: string;
     explanation: string;
+  }[];
+}
+
+interface JudgeResult {
+  status: string;
+  runtime: string;
+  cases: {
+    input: any;
+    output: string;
+    expected: string;
+    passed: boolean;
   }[];
 }
 
@@ -53,38 +56,33 @@ export default function ProblemDetailPage() {
   } = useOutletContext<LayoutContext>();
 
   /* =========================
-     State
+      State
      ========================= */
   const [problem, setProblem] = useState<Problem | null>(null);
   const [problemIds, setProblemIds] = useState<number[]>([]);
-
   const [code, setCode] = useState("");
   const [language, setLanguage] = useState<Language>("python");
-
   const [testCases, setTestCases] = useState<TestCase[]>([]);
-  const [results, setResults] = useState<TestResult[] | null>(null);
+  const [results, setResults] = useState<JudgeResult | null>(null);
   const [loading, setLoading] = useState(false);
 
   /* =========================
-     Pagination
+      Pagination Logic
      ========================= */
-  const currentIndex = problemIds.indexOf(Number(id));
-  const prevId =
-    currentIndex > 0 ? problemIds[currentIndex - 1] : undefined;
-  const nextId =
-    currentIndex >= 0 && currentIndex < problemIds.length - 1
-      ? problemIds[currentIndex + 1]
-      : undefined;
+  const { prevId, nextId } = useMemo(() => {
+    const currentIndex = problemIds.indexOf(Number(id));
+    return {
+      prevId: currentIndex > 0 ? problemIds[currentIndex - 1] : undefined,
+      nextId: currentIndex >= 0 && currentIndex < problemIds.length - 1 ? problemIds[currentIndex + 1] : undefined
+    };
+  }, [id, problemIds]);
 
   /* =========================
-     Fetch Problem
+      Data Fetching
      ========================= */
   useEffect(() => {
     if (!id) return;
-
-    axios
-      .get(`http://localhost:5000/api/problems/${id}`)
-      .then((res) => setProblem(res.data));
+    axios.get(`http://localhost:5000/api/problems/${id}`).then((res) => setProblem(res.data));
   }, [id]);
 
   useEffect(() => {
@@ -93,12 +91,8 @@ export default function ProblemDetailPage() {
     });
   }, []);
 
-  /* =========================
-     Fetch Test Cases
-     ========================= */
   useEffect(() => {
     if (!id) return;
-
     axios
       .get(`http://localhost:5000/api/problems/${id}/testcases`)
       .then((res) => setTestCases(res.data.testCases))
@@ -106,239 +100,137 @@ export default function ProblemDetailPage() {
   }, [id]);
 
   /* =========================
-     RUN
+      Handlers (Memoized)
      ========================= */
   const handleRun = useCallback(async () => {
     if (!id) return;
-
     try {
       setLoading(true);
       setDisableActions(true);
-      setResults(null);
-
-      const res = await axios.post(
-        "http://localhost:5000/api/judge/run",
-        {
-          problemId: Number(id),
-          code,
-          language,
-        }
-      );
-
-      setResults(res.data.results);
+      const res = await axios.post("http://localhost:5000/api/judge/run", {
+        problemId: Number(id), code, language
+      });
+      setResults(res.data);
     } finally {
       setLoading(false);
       setDisableActions(false);
     }
   }, [id, code, language, setDisableActions]);
 
-  /* =========================
-     SUBMIT
-     ========================= */
   const handleSubmit = useCallback(async () => {
     if (!id) return;
-
     try {
       setLoading(true);
       setDisableActions(true);
-      setResults(null);
-
-      const res = await axios.post(
-        "http://localhost:5000/api/judge/submit",
-        {
-          problemId: Number(id),
-          code,
-          language,
-        }
-      );
-
-      setResults(res.data.results);
+      const res = await axios.post("http://localhost:5000/api/judge/submit", {
+        problemId: Number(id), code, language
+      });
+      setResults(res.data);
     } finally {
       setLoading(false);
       setDisableActions(false);
     }
   }, [id, code, language, setDisableActions]);
 
+  const handlePrev = useCallback(() => {
+    if (prevId) navigate(`/problems/${prevId}`);
+  }, [prevId, navigate]);
+
+  const handleNext = useCallback(() => {
+    if (nextId) navigate(`/problems/${nextId}`);
+  }, [nextId, navigate]);
+
   /* =========================
-     Navbar Sync
+      Navbar Sync (THE FIX)
      ========================= */
   useEffect(() => {
+    // Factory function wrap to prevent immediate execution
     setOnRun(() => handleRun);
     setOnSubmit(() => handleSubmit);
-    setOnPrev(prevId ? () => () => navigate(`/problems/${prevId}`) : undefined);
-    setOnNext(nextId ? () => () => navigate(`/problems/${nextId}`) : undefined);
+    setOnPrev(prevId ? () => handlePrev : undefined);
+    setOnNext(nextId ? () => handleNext : undefined);
 
     return () => {
       setOnRun(undefined);
       setOnSubmit(undefined);
       setOnPrev(undefined);
       setOnNext(undefined);
-      setDisableActions(false);
     };
-  }, [
-    handleRun,
-    handleSubmit,
-    prevId,
-    nextId,
-    navigate,
-    setOnRun,
-    setOnSubmit,
-    setOnPrev,
-    setOnNext,
-    setDisableActions,
-  ]);
+  }, [handleRun, handleSubmit, handlePrev, handleNext, prevId, nextId, setOnRun, setOnSubmit, setOnPrev, setOnNext]);
 
-  /* =========================
-     Loading
-     ========================= */
-  if (!problem) {
-    return (
-      <div className="h-screen bg-[#1a1a1a] flex items-center justify-center text-slate-500">
-        Loading problem...
-      </div>
-    );
-  }
+  if (!problem) return <div className="h-screen bg-[#1a1a1a] flex items-center justify-center text-slate-500">Loading...</div>;
 
-  /* =========================
-     Render
-     ========================= */
   return (
     <div className="grid grid-cols-1 p-2 lg:grid-cols-2 h-[calc(100vh-56px)] bg-[#0f0f0f] overflow-hidden text-[#eff1f6]">
-
       {/* LEFT PANEL */}
       <div className="h-full flex flex-col bg-[#262626] rounded-lg border border-[#333] overflow-hidden">
-
-        {/* ================= Top Bar ================= */}
-        <div className="flex items-center gap-2 px-4 py-2 bg-[#2a2a2a] border-b border-[#333] text-sm">
-          <span className="font-semibold text-green-400">
-            Description
-          </span>
+        <div className="px-4 py-2 bg-[#2a2a2a] border-b border-[#333] text-sm font-semibold text-green-400">
+          Description
         </div>
 
-        {/* ================= Content ================= */}
-        <div className="flex-1 p-4 overflow-y-auto text-slate-200">
-
-          {/* Title */}
-          <h1 className="text-2xl font-semibold mb-2">
-            {problem.title}
-          </h1>
-
-          {/* Difficulty */}
-          <div className="inline-flex items-center mb-6">
-            <span className="text-xs bg-[#3a3a3a] px-2 py-0.5 rounded-l">
-              difficulty
-            </span>
-            <div className="flex items-center">
-              {/* The parent no longer needs the background classes */}
+        <div className="flex-1 p-6 overflow-y-auto text-slate-200">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold mb-2">{problem.id}{". "}{problem.title}</h1>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-white p-1 rounded bg-slate-600">Difficulty</span>
               <DifficultyBadge difficulty={problem.difficulty} />
             </div>
           </div>
 
-          {/* Description Text */}
-          <div className="space-y-4 text-sm leading-relaxed text-[#eff1f6d9] mb-8">
+          <div className="space-y-4 text-sm leading-relaxed text-[#eff1f6d9]">
             {problem.description.split("\n\n").map((para, i) => (
               <p key={i}>{para}</p>
             ))}
           </div>
 
-          {/* Examples */}
-          <h3 className="text-sm font-bold mb-4">
-            Example
-          </h3>
-
-          <div className="space-y-6 mb-8">
+          <h3 className="text-sm font-bold mt-8 mb-4 uppercase tracking-wider text-slate-400">Example</h3>
+          <div className="space-y-6">
             {problem.examples.map((ex, i) => (
-              <div
-                key={i}
-                className="pl-4 border-l border-[#333] font-mono text-sm space-y-1"
-              >
-                <p>
-                  <span className="font-semibold">Input:</span>{" "}
-                  {ex.input}
-                </p>
-                <p>
-                  <span className="font-semibold">Output:</span>{" "}
-                  {ex.output}
-                </p>
+              <div key={i} className="pl-4 border-l-2 border-[#444] font-mono text-sm bg-[#2a2a2a]/50 py-3 pr-4 rounded-r">
+                <p><span className="text-slate-400">Input:</span> {ex.input}</p>
+                <p><span className="text-slate-400">Output:</span> {ex.output}</p>
                 {ex.explanation && (
-                  <p className="text-slate-400">
-                    <span className="font-semibold">Explanation:</span>{" "}
-                    {ex.explanation}
+                  <p className="mt-2 text-slate-500 italic text-xs">
+                    <b>Explanation:</b> {ex.explanation}
                   </p>
                 )}
               </div>
             ))}
           </div>
 
-          {/* Constraints */}
-          <h3 className="text-sm font-bold mb-4">
-            Constraints
-          </h3>
-
-          <div className="space-y-2">
+          <h3 className="text-sm font-bold mt-8 mb-4 uppercase tracking-wider text-slate-400">Constraints</h3>
+          <div className="flex flex-wrap gap-2 mb-8">
             {problem.constraints.split("\n").map((c, i) => (
-              <div
-                key={i}
-                className="bg-[#3a3a3a] rounded-md px-4 py-2 text-xs font-mono text-white"
-              >
+              <div key={i} className="bg-[#333] border border-[#444] rounded px-3 py-1.5 text-[11px] font-mono text-emerald-400">
                 {c}
               </div>
             ))}
           </div>
-
         </div>
       </div>
-
 
       {/* RIGHT PANEL */}
-      <div className="flex flex-col px-2 h-full bg-[#0f0f0f] overflow-hidden">
-        {/* Editor (Top Half) */}
-        <div className="flex-[6] mb-2 min-h-0 overflow-hidden bg-[#0f0f0f]">
-          <div className="h-full overflow-hidden">
-            <CodeEditor
-              code={code}
-              setCode={setCode}
-              language={language}
-              setLanguage={setLanguage}
-            />
-          </div>
+      <div className="flex flex-col h-full overflow-hidden ml-2">
+        <div className="flex-[6] mb-2 min-h-0">
+          <CodeEditor
+            code={code}
+            setCode={setCode}
+            language={language}
+            setLanguage={setLanguage}
+          />
         </div>
-
-        {/* Output */}
-        <div className="flex-[4] min-h-0 bg-[#1a1a1a] overflow-hidden">
-          <div className="h-full overflow-hidden">
-            <OutputBox
-              loading={loading}
-              testCases={testCases}
-              results={results}
-            />
-          </div>
+        <div className="flex-[4] min-h-0 bg-[#262626] h-full rounded-lg border border-[#333] overflow-hidden">
+          <OutputBox loading={loading} testCases={testCases} results={results} />
         </div>
       </div>
-
     </div>
   );
 }
 
-/* =========================
-   Difficulty Badge
-   ========================= */
-function DifficultyBadge({
-  difficulty,
-}: {
-  difficulty: "Easy" | "Medium" | "Hard";
-}) {
-  const bgColor =
-    difficulty === "Easy"
-      ? "bg-emerald-400"
-      : difficulty === "Medium"
-        ? "bg-yellow-400"
-        : "bg-rose-400";
-
+function DifficultyBadge({ difficulty }: { difficulty: "Easy" | "Medium" | "Hard" }) {
+  const bgColor = difficulty === "Easy" ? "bg-emerald-500" : difficulty === "Medium" ? "bg-yellow-500" : "bg-rose-500";
   return (
-    <span
-      className={`px-2 py-0.5 rounded text-[11px] font-bold text-white ${bgColor}`}
-    >
+    <span className={`inline-block px-2.5 py-1 rounded text-[10px] font-bold text-white uppercase tracking-wider ${bgColor}`}>
       {difficulty}
     </span>
   );

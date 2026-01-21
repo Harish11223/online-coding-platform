@@ -11,6 +11,7 @@ interface CodeEditorProps {
 
 const LANGUAGES: { label: string; value: Language }[] = [
   { label: "C++", value: "cpp" },
+  { label: "Java", value: "java" },
   { label: "Python", value: "python" },
   { label: "JavaScript", value: "javascript" },
 ];
