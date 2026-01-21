@@ -41,30 +41,20 @@ export const runCode = async (
       return res.status(400).json({ error: "Unsupported language" });
     }
 
-    // 🔹 Fetch ONLY public test cases (or all for now)
     const { rows: testCases } = await pool.query(
-      `SELECT input, expected_output
-       FROM test_cases
-       WHERE problem_id = $1
-       ORDER BY id ASC`,
+      `
+      SELECT input, expected_output
+      FROM test_cases
+      WHERE problem_id = $1
+        AND is_hidden = false
+      ORDER BY id ASC
+      `,
       [problemId]
     );
 
-    if (testCases.length === 0) {
-      return res.status(404).json({ error: "No test cases found" });
-    }
+    const results = [];
 
-    const cases: {
-      caseNo: number;
-      input: string;
-      expected: string;
-      actual: string;
-      status: "Passed" | "Failed";
-    }[] = [];
-
-    for (let i = 0; i < testCases.length; i++) {
-      const tc = testCases[i];
-
+    for (const tc of testCases) {
       const response = await axios.post<Judge0Response>(
         `${JUDGE0_URL}/submissions?wait=true`,
         {
@@ -78,40 +68,45 @@ export const runCode = async (
 
       if (compile_output) {
         return res.json({
-          verdict: "Compile Error",
-          error: compile_output,
+          results: [
+            {
+              input: tc.input,
+              expected: tc.expected_output,
+              output: "",
+              passed: false,
+              error: compile_output,
+            },
+          ],
         });
       }
 
       if (stderr) {
         return res.json({
-          verdict: "Runtime Error",
-          error: stderr,
+          results: [
+            {
+              input: tc.input,
+              expected: tc.expected_output,
+              output: "",
+              passed: false,
+              error: stderr,
+            },
+          ],
         });
       }
 
       const actual = (stdout ?? "").trim();
       const expected = tc.expected_output.trim();
 
-      const status: "Passed" | "Failed" =
-        actual === expected ? "Passed" : "Failed";
-
-      cases.push({
-        caseNo: i + 1,
+      results.push({
         input: tc.input,
         expected,
-        actual,
-        status,
+        output: actual,
+        passed: actual === expected,
+        error: null,
       });
     }
 
-    // ✅ Run DOES NOT stop on failure
-    return res.json({
-      verdict: cases.every(c => c.status === "Passed")
-        ? "Accepted"
-        : "Wrong Answer",
-      cases,
-    });
+    return res.json({ results });
   } catch (err) {
     console.error("Judge0 Run Error:", err);
     return res.status(500).json({ error: "Execution failed" });
@@ -137,31 +132,19 @@ export const submitCode = async (
       return res.status(400).json({ error: "Unsupported language" });
     }
 
-    // 1️⃣ Fetch test cases
     const { rows: testCases } = await pool.query(
-      `SELECT input, expected_output
-       FROM test_cases
-       WHERE problem_id = $1
-       ORDER BY id ASC`,
+      `
+      SELECT input, expected_output
+      FROM test_cases
+      WHERE problem_id = $1
+      ORDER BY id ASC
+      `,
       [problemId]
     );
 
-    if (testCases.length === 0) {
-      return res.status(404).json({ error: "No test cases found" });
-    }
+    const results = [];
 
-    const cases: {
-      caseNo: number;
-      input: string;
-      expected: string;
-      actual: string;
-      status: "Passed" | "Failed";
-    }[] = [];
-
-    // 2️⃣ Run for each test case
-    for (let i = 0; i < testCases.length; i++) {
-      const tc = testCases[i];
-
+    for (const tc of testCases) {
       const response = await axios.post<Judge0Response>(
         `${JUDGE0_URL}/submissions?wait=true`,
         {
@@ -175,45 +158,45 @@ export const submitCode = async (
 
       if (compile_output) {
         return res.json({
-          verdict: "Compile Error",
-          error: compile_output,
+          results: [
+            {
+              input: tc.input,
+              expected: tc.expected_output,
+              output: "",
+              passed: false,
+              error: compile_output,
+            },
+          ],
         });
       }
 
       if (stderr) {
         return res.json({
-          verdict: "Runtime Error",
-          error: stderr,
+          results: [
+            {
+              input: tc.input,
+              expected: tc.expected_output,
+              output: "",
+              passed: false,
+              error: stderr,
+            },
+          ],
         });
       }
 
       const actual = (stdout ?? "").trim();
       const expected = tc.expected_output.trim();
 
-      const status: "Passed" | "Failed" =
-        actual === expected ? "Passed" : "Failed";
-
-      cases.push({
-        caseNo: i + 1,
+      results.push({
         input: tc.input,
         expected,
-        actual,
-        status,
+        output: actual,
+        passed: actual === expected,
+        error: null,
       });
-
-      if (status === "Failed") {
-        return res.json({
-          verdict: "Wrong Answer",
-          cases,
-        });
-      }
     }
 
-    // ✅ Accepted
-    return res.json({
-      verdict: "Accepted",
-      cases,
-    });
+    return res.json({ results });
   } catch (err) {
     console.error("Judge0 Submit Error:", err);
     return res.status(500).json({ error: "Submission failed" });
