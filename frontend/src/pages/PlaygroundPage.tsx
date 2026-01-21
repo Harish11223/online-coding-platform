@@ -11,7 +11,21 @@ import OutputBox from "../components/OutputBox";
 import InputBox from "../components/InputBox";
 
 import { Language } from "../types/language";
-import { TestCase, TestResult } from "../types/problem";
+import { TestCase } from "../types/problem";
+
+/* =========================
+   Judge Result Type
+   ========================= */
+interface JudgeResult {
+  status: string;
+  runtime: string;
+  cases: {
+    input: any;
+    output: string;
+    expected: string;
+    passed: boolean;
+  }[];
+}
 
 export default function PlaygroundPage() {
   /* =========================
@@ -25,23 +39,22 @@ export default function PlaygroundPage() {
      Testcases & Results
      ========================= */
   const [testCases, setTestCases] = useState<TestCase[]>([]);
-  const [results, setResults] = useState<TestResult[] | null>(null);
+  const [results, setResults] = useState<JudgeResult | null>(null);
   const [loading, setLoading] = useState(false);
 
   const problemId = 1; // TODO: make dynamic later
 
   /* =========================
-     Fetch Test Cases
+     Fetch Test Cases (RUN MODE)
      ========================= */
   useEffect(() => {
     const fetchTestCases = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/problems/${problemId}/testcases`
+          `http://localhost:5000/api/problems/${problemId}/testcases?mode=run`
         );
-
         setTestCases(res.data.testCases);
-      } catch (error) {
+      } catch {
         console.error("Failed to load test cases");
         setTestCases([]);
       }
@@ -51,7 +64,7 @@ export default function PlaygroundPage() {
   }, [problemId]);
 
   /* =========================
-     RUN (visible test cases)
+     RUN
      ========================= */
   const runCode = async () => {
     try {
@@ -60,31 +73,33 @@ export default function PlaygroundPage() {
 
       const res = await axios.post(
         "http://localhost:5000/api/judge/run",
-        { problemId, code, language }
+        { problemId, code, language, input: userInput }
       );
 
-      console.log("RUN RESPONSE 👉", res.data);
-
-      setResults(res.data.results);
+      // 🔥 STORE FULL JUDGE RESPONSE
+      setResults(res.data);
     } catch (e) {
       console.error("RUN ERROR 👉", e);
-      setResults([
-        {
-          input: "",
-          expected: "",
-          output: "",
-          passed: false,
-          error: "Execution failed",
-        },
-      ]);
+
+      setResults({
+        status: "Runtime Error",
+        runtime: "—",
+        cases: [
+          {
+            input: userInput,
+            output: "",
+            expected: "",
+            passed: false,
+          },
+        ],
+      });
     } finally {
       setLoading(false);
     }
   };
 
-
   /* =========================
-     SUBMIT (all test cases)
+     SUBMIT
      ========================= */
   const submitCode = async () => {
     try {
@@ -93,28 +108,30 @@ export default function PlaygroundPage() {
 
       const res = await axios.post(
         "http://localhost:5000/api/judge/submit",
-        { problemId, code, language }
+        { problemId, code, language, input: userInput }
       );
 
-      console.log("SUBMIT RESPONSE 👉", res.data);
-
-      setResults(res.data.results);
+      // 🔥 STORE FULL JUDGE RESPONSE
+      setResults(res.data);
     } catch (e) {
       console.error("SUBMIT ERROR 👉", e);
-      setResults([
-        {
-          input: "",
-          expected: "",
-          output: "",
-          passed: false,
-          error: "Submission failed",
-        },
-      ]);
+
+      setResults({
+        status: "Runtime Error",
+        runtime: "—",
+        cases: [
+          {
+            input: userInput,
+            output: "",
+            expected: "",
+            passed: false,
+          },
+        ],
+      });
     } finally {
       setLoading(false);
     }
   };
-
 
   return (
     <div className="max-w-7xl mx-auto p-6">

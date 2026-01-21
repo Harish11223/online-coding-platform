@@ -62,20 +62,24 @@ export const getProblemTestCases = async (
 ) => {
   try {
     const { problemId } = req.params;
+    const { mode } = req.query; // "run" | "submit"
+
+    const showHidden = mode === "submit";
 
     const { rows } = await pool.query(
       `
       SELECT
-      id,
-      input_json AS input,
-      is_hidden
+        id,
+        input_json AS input,
+        expected_output,
+        is_hidden
       FROM test_cases
       WHERE problem_id = $1
+        AND ($2::boolean = true OR is_hidden = false)
       ORDER BY id ASC;
-  `,
-      [problemId]
+      `,
+      [problemId, showHidden]
     );
-
 
     res.json({
       testCases: rows,
