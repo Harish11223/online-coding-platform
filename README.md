@@ -1,24 +1,20 @@
-# 🧠 Online Coding Platform
+# 🧠 CodeForge
 
-A full-stack **online coding platform** (LeetCode-style) that allows users to write, run, and test code in multiple programming languages with real-time execution and output.
+CodeForge is a **LeetCode-style online coding platform** that allows users to solve programming problems, write and run code, and submit solutions for evaluation in multiple languages.
 
-The platform uses **Docker-based Judge0** running on **AWS EC2(Ubuntu) instance** for secure code execution, a **Node.js backend**, and a **React (Vite) frontend** with **Monaco Editor** for a VS Code–like experience.
+The platform uses a **self-hosted Judge0 (Docker)** instance running on **AWS EC2 (Ubuntu)** for secure code execution, along with a **Node.js backend** and a **React (Vite) frontend** featuring **Monaco Editor** for a VS Code–like experience.
 
 ---
 
 ## 🚀 Features
 
-- 🧑‍💻 Write and execute code in:
-  - C++
-  - Java
-  - Python
-  - JavaScript
-- ⚙️ Secure sandboxed execution using **Judge0 (Docker)**
-- 📝 VS Code–like editor using **Monaco Editor**
-- ⌨️ Custom user input (stdin) support
-- 📤 Real-time output, errors, and verdicts
-- 🎨 Clean and responsive UI built with **Tailwind CSS**
-- ☁️ Deployed on **AWS EC2** with process management
+- 📋 Browse and solve coding problems with a LeetCode-style interface  
+- 🧑‍💻 Write code in **C++**, **Java**, **Python**, and **JavaScript**  
+- ▶️ Run code against sample test cases and submit final solutions  
+- ✅ Instant verdicts with detailed input/output comparison  
+- 🧪 Structured test case handling with clear, readable inputs  
+- 🔐 Secure, sandboxed execution using **Judge0 (Docker)** on **AWS EC2**  
+- 🎨 Clean, responsive dark-themed UI built with **Tailwind CSS**
 
 ---
 
@@ -26,20 +22,23 @@ The platform uses **Docker-based Judge0** running on **AWS EC2(Ubuntu) instance*
 
 ### Frontend
 - React (Vite)
+- TypeScript
 - Monaco Editor
 - Tailwind CSS
 - Axios
+- React Router
 
 ### Backend
 - Node.js
 - Express.js
+- PostgreSQL
 - Judge0 API
-- PM2 (process manager)
+- PM2
 
 ### Infrastructure
-- AWS EC2
+- AWS EC2 (Ubuntu)
 - Docker & Docker Compose
-- Linux (Ubuntu)
+- Linux
 
 ---
 
