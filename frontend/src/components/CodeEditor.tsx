@@ -1,36 +1,53 @@
 import Editor from "@monaco-editor/react";
 import type { Dispatch, SetStateAction } from "react";
+import { Language } from "../types/language";
 
 interface CodeEditorProps {
   code: string;
   setCode: Dispatch<SetStateAction<string>>;
-  language: string;
+  language: Language;
+  setLanguage: Dispatch<SetStateAction<Language>>;
 }
 
-const CodeEditor = ({ code, setCode, language }: CodeEditorProps) => {
-  return (
-    <div className="flex flex-col w-full h-full overflow-hidden rounded-xl bg-[#0f172a] border border-slate-800">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-[#020617] border-b border-slate-800">
-        <div className="flex items-center gap-2">
-          <div className="flex gap-1.5 mr-2">
-            <div className="w-3 h-3 rounded-full bg-red-500/70" />
-            <div className="w-3 h-3 rounded-full bg-amber-500/70" />
-            <div className="w-3 h-3 rounded-full bg-emerald-500/70" />
-          </div>
+const LANGUAGES: { label: string; value: Language }[] = [
+  { label: "C++", value: "cpp" },
+  { label: "Python", value: "python" },
+  { label: "JavaScript", value: "javascript" },
+];
 
-          <span className="text-xs font-medium tracking-wider text-slate-400 uppercase">
-            main.{language === "javascript" ? "js" : language}
-          </span>
+const CodeEditor = ({
+  code,
+  setCode,
+  language,
+  setLanguage,
+}: CodeEditorProps) => {
+  return (
+    <div className="flex flex-col w-full h-full bg-[#1e1e1e] overflow-hidden">
+      {/* Top Bar */}
+      <div className="flex items-center justify-between px-4 h-10 bg-[#2a2a2a] border-b border-[#333]">
+        <div className="flex items-center gap-2 text-sm text-slate-300">
+          <span className="text-green-400 font-semibold">{`</>`}</span>
+          <span className="font-medium">Code</span>
         </div>
 
-        <span className="px-2 py-1 text-[10px] font-semibold text-slate-400 bg-slate-900 rounded uppercase tracking-widest">
-          {language}
-        </span>
+        {/* Language Selector */}
+        <select
+          value={language}
+          onChange={(e) =>
+            setLanguage(e.target.value as Language)
+          }
+          className="bg-[#1e1e1e] border border-[#333] text-slate-200 text-xs px-2 py-1 rounded focus:outline-none"
+        >
+          {LANGUAGES.map((lang) => (
+            <option key={lang.value} value={lang.value}>
+              {lang.label}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {/* Editor */}
-      <div className="flex-1 overflow-hidden">
+      {/* Monaco Editor */}
+      <div className="flex-1">
         <Editor
           theme="vs-dark"
           language={language}
@@ -38,22 +55,9 @@ const CodeEditor = ({ code, setCode, language }: CodeEditorProps) => {
           onChange={(value) => setCode(value ?? "")}
           options={{
             fontSize: 14,
-            fontFamily: "'Fira Code', 'Cascadia Code', monospace",
             minimap: { enabled: false },
-            padding: { top: 16, bottom: 16 },
-            smoothScrolling: true,
-            cursorBlinking: "smooth",
-            cursorSmoothCaretAnimation: "on",
-            lineNumbersMinChars: 3,
             scrollBeyondLastLine: false,
             automaticLayout: true,
-
-            // 👇 THIS enables proper scrolling
-            scrollbar: {
-              verticalScrollbarSize: 10,
-              horizontalScrollbarSize: 10,
-              alwaysConsumeMouseWheel: false,
-            },
           }}
         />
       </div>

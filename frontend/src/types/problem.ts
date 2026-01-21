@@ -3,3 +3,16 @@ export interface Problem {
   title: string;
   difficulty: "Easy" | "Medium" | "Hard";
 }
+
+export interface TestResult {
+  input: string;
+  expected: string;
+  output: string;
+  passed: boolean;
+  error?: string | null;
+}
+
+export interface TestCase {
+  id: number;
+  input: string;
+}

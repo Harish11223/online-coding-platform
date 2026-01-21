@@ -1,80 +1,126 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import {
   PlayIcon,
-  CommandLineIcon,
+  CloudArrowUpIcon,
 } from "@heroicons/react/24/outline";
 
 import CodeEditor from "../components/CodeEditor";
 import LanguageSelector from "../components/LanguageSelector";
 import OutputBox from "../components/OutputBox";
 import InputBox from "../components/InputBox";
-import { Language } from "../types/language";
 
-/**
- * Raw Judge0 run response
- */
-interface ExecutionResponse {
-  stdout?: string;
-  stderr?: string;
-  compile_output?: string;
-}
+import { Language } from "../types/language";
+import { TestCase, TestResult } from "../types/problem";
 
 export default function PlaygroundPage() {
-  const [code, setCode] = useState<string>("# Write your code here...");
+  /* =========================
+     Editor & Language
+     ========================= */
+  const [code, setCode] = useState("# Write your code here...");
   const [language, setLanguage] = useState<Language>("python");
-  const [userInput, setUserInput] = useState<string>("");
-
-  const [result, setResult] = useState<any | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [userInput, setUserInput] = useState("");
 
   /* =========================
-     RUN CODE (Playground)
+     Testcases & Results
      ========================= */
-  const runCode = async (): Promise<void> => {
+  const [testCases, setTestCases] = useState<TestCase[]>([]);
+  const [results, setResults] = useState<TestResult[] | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const problemId = 1; // TODO: make dynamic later
+
+  /* =========================
+     Fetch Test Cases
+     ========================= */
+  useEffect(() => {
+    const fetchTestCases = async () => {
+      try {
+        const res = await axios.get(
+          `http://localhost:5000/api/problems/${problemId}/testcases`
+        );
+
+        setTestCases(res.data.testCases);
+      } catch (error) {
+        console.error("Failed to load test cases");
+        setTestCases([]);
+      }
+    };
+
+    fetchTestCases();
+  }, [problemId]);
+
+  /* =========================
+     RUN (visible test cases)
+     ========================= */
+  const runCode = async () => {
     try {
       setLoading(true);
-      setResult(null);
+      setResults(null);
 
-      const res = await axios.post<ExecutionResponse>(
+      const res = await axios.post(
         "http://localhost:5000/api/judge/run",
-        {
-          code,
-          language,
-          input: userInput,
-        }
+        { problemId, code, language }
       );
 
-      // Normalize Judge0 response for OutputBox
-      if (res.data.compile_output) {
-        setResult({
-          verdict: "Compile Error",
-          error: res.data.compile_output,
-        });
-      } else if (res.data.stderr) {
-        setResult({
-          verdict: "Runtime Error",
-          error: res.data.stderr,
-        });
-      } else {
-        setResult({
-          verdict: "Output",
-          output: res.data.stdout || "No output",
-        });
-      }
-    } catch (err) {
-      setResult({
-        verdict: "Error",
-        error: "❌ Could not connect to execution server.",
-      });
+      console.log("RUN RESPONSE 👉", res.data);
+
+      setResults(res.data.results);
+    } catch (e) {
+      console.error("RUN ERROR 👉", e);
+      setResults([
+        {
+          input: "",
+          expected: "",
+          output: "",
+          passed: false,
+          error: "Execution failed",
+        },
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
+
+  /* =========================
+     SUBMIT (all test cases)
+     ========================= */
+  const submitCode = async () => {
+    try {
+      setLoading(true);
+      setResults(null);
+
+      const res = await axios.post(
+        "http://localhost:5000/api/judge/submit",
+        { problemId, code, language }
+      );
+
+      console.log("SUBMIT RESPONSE 👉", res.data);
+
+      setResults(res.data.results);
+    } catch (e) {
+      console.error("SUBMIT ERROR 👉", e);
+      setResults([
+        {
+          input: "",
+          expected: "",
+          output: "",
+          passed: false,
+          error: "Submission failed",
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   return (
     <div className="max-w-7xl mx-auto p-6">
-      {/* Header */}
+      {/* =========================
+          Navbar
+         ========================= */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold">Playground</h1>
 
@@ -87,49 +133,49 @@ export default function PlaygroundPage() {
           <button
             onClick={runCode}
             disabled={loading}
-            className={`flex items-center gap-2 px-5 py-2 rounded-lg font-semibold transition-all ${
-              loading
-                ? "bg-slate-700 cursor-not-allowed"
-                : "bg-emerald-600 hover:bg-emerald-500 text-white"
-            }`}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white disabled:opacity-50"
           >
-            {loading ? (
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <PlayIcon className="w-4 h-4" />
-            )}
-            {loading ? "Running..." : "Run"}
+            <PlayIcon className="w-4 h-4" />
+            Run
+          </button>
+
+          <button
+            onClick={submitCode}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50"
+          >
+            <CloudArrowUpIcon className="w-4 h-4" />
+            Submit
           </button>
         </div>
       </div>
 
-      {/* Layout */}
+      {/* =========================
+          Layout
+         ========================= */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Editor */}
+        {/* Code Editor */}
         <div className="lg:col-span-2">
           <CodeEditor
             code={code}
             setCode={setCode}
             language={language}
+            setLanguage={setLanguage}
           />
         </div>
 
-        {/* Sidebar */}
+        {/* Right Panel */}
         <div className="flex flex-col gap-6">
-          <InputBox input={userInput} setInput={setUserInput} />
+          <InputBox
+            input={userInput}
+            setInput={setUserInput}
+          />
 
-          <div className="flex flex-col flex-grow min-h-[250px]">
-            <div className="flex items-center gap-2 mb-2 text-slate-400">
-              <CommandLineIcon className="w-5 h-5" />
-              <span className="text-sm uppercase tracking-widest">
-                Output
-              </span>
-            </div>
-
+          <div className="flex flex-col flex-grow min-h-[320px]">
             <OutputBox
-              result={result}
               loading={loading}
-              onClear={() => setResult(null)}
+              testCases={testCases}
+              results={results}
             />
           </div>
         </div>

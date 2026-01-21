@@ -1,69 +1,118 @@
 import { useState } from "react";
+import { TestCase, TestResult } from "../types/problem";
 
 interface OutputBoxProps {
-  output: string | null;
   loading: boolean;
-  onRun: (input: string) => void;
-  onSubmit: (input: string) => void;
+  testCases?: TestCase[];
+  results?: TestResult[] | null;
 }
 
-const OutputBox = ({ output, loading, onRun, onSubmit }: OutputBoxProps) => {
-  const [input, setInput] = useState("");
+export default function OutputBox({
+  loading,
+  testCases = [],
+  results = null,
+}: OutputBoxProps) {
+  const [tab, setTab] = useState<"testcase" | "result">("testcase");
+  const [activeCase, setActiveCase] = useState(0);
+
+  const tc = testCases[activeCase];
 
   return (
-    <div className="flex flex-col h-full bg-[#1a1a1a] font-mono p-4">
-      
-      {/* 1. Input Section */}
-      <div className="flex flex-col gap-3">
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Enter input here (stdin)..."
-          className="w-full h-32 resize-none rounded-lg bg-[#2a2a2a] text-[#eff1f6] p-4 text-sm outline-none border border-[#333] focus:border-[#2db55d] transition-colors placeholder:text-slate-600"
-        />
-
-        {/* 2. Run & Submit Buttons */}
-        <div className="flex gap-3">
-          <button
-            onClick={() => onRun(input)}
-            className="px-6 py-2 rounded-md bg-[#333] text-[#eff1f6] text-xs font-bold uppercase hover:bg-[#444] transition-all active:scale-95"
-          >
-            Run
-          </button>
-
-          <button
-            onClick={() => onSubmit(input)}
-            className="px-6 py-2 rounded-md bg-[#2db55d] text-white text-xs font-bold uppercase hover:bg-[#269e50] transition-all active:scale-95"
-          >
-            Submit
-          </button>
-        </div>
+    <div className="h-full flex flex-col bg-[#262626] rounded-lg border border-[#333] overflow-hidden">
+      {/* ================= Breadcrumb Tabs ================= */}
+      <div className="flex items-center gap-2 px-4 py-2 bg-[#1f1f1f] border-b border-[#333] text-sm">
+        <button
+          onClick={() => setTab("testcase")}
+          className={`font-semibold ${
+            tab === "testcase" ? "text-green-400" : "text-slate-400"
+          }`}
+        >
+          Testcase
+        </button>
+        <span className="text-slate-500">›</span>
+        <button
+          onClick={() => setTab("result")}
+          className={`font-semibold ${
+            tab === "result" ? "text-green-400" : "text-slate-400"
+          }`}
+        >
+          Test Result
+        </button>
       </div>
 
-      {/* 3. Output Section */}
-      <div className="flex-1 min-h-0 mt-6 flex flex-col overflow-hidden">
-        <p className="text-[#8a8a8a] text-[11px] mb-3 uppercase font-bold tracking-widest">
-          Your Output
-        </p>
-
-        {/* This area scrolls if output is long */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide rounded-lg border border-[#333] bg-[#2a2a2a]">
-          {loading ? (
-            <div className="flex items-center gap-3 p-4">
-              <div className="w-2 h-2 rounded-full bg-[#2db55d] animate-pulse"></div>
-              <p className="text-[#8a8a8a] italic text-sm">Running code...</p>
+      {/* ================= Content ================= */}
+      <div className="flex-1 p-4 overflow-hidden">
+        {/* ================= TESTCASE TAB ================= */}
+        {tab === "testcase" && (
+          <div className="h-full flex flex-col">
+            {/* Case Tabs */}
+            <div className="flex items-center gap-2 mb-4">
+              {testCases.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveCase(i)}
+                  className={`px-3 py-1 rounded-md text-sm ${
+                    i === activeCase
+                      ? "bg-[#3a3a3a] text-white"
+                      : "text-slate-400 hover:bg-[#333]"
+                  }`}
+                >
+                  Case {i + 1}
+                </button>
+              ))}
+              <button className="px-3 py-1 text-slate-400 hover:bg-[#333] rounded-md">
+                +
+              </button>
             </div>
-          ) : (
-            <pre className="p-4 text-[#eff1f6] text-sm font-mono whitespace-pre-wrap leading-relaxed">
-              {output ?? (
-                <span className="text-slate-600 italic">No output yet. Run your code to see results.</span>
+
+            {/* Case Content */}
+            <div className="space-y-4">
+              {tc ? (
+                <>
+                  {/* nums */}
+                  <div>
+                    <p className="text-xs text-slate-400 mb-1">nums =</p>
+                    <div className="bg-[#3a3a3a] rounded-md px-4 py-2 font-mono text-sm text-white">
+                      {tc.input.split("\n")[1] || ""}
+                    </div>
+                  </div>
+
+                  {/* target */}
+                  <div>
+                    <p className="text-xs text-slate-400 mb-1">target =</p>
+                    <div className="bg-[#3a3a3a] rounded-md px-4 py-2 font-mono text-sm text-white">
+                      {tc.input.split("\n")[2] || ""}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <p className="text-slate-500 italic">
+                  No test case selected
+                </p>
               )}
-            </pre>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
+
+        {/* ================= TEST RESULT TAB ================= */}
+        {tab === "result" && (
+          <div className="h-full flex items-center justify-center">
+            {loading ? (
+              <p className="text-slate-400 italic">
+                Running test cases...
+              </p>
+            ) : !results ? (
+              <p className="text-slate-500">
+                You must run your code first
+              </p>
+            ) : (
+              <p className="text-green-400 font-semibold">
+                Results available
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
-};
-
-export default OutputBox;
+}
