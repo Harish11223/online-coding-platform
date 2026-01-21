@@ -20,7 +20,7 @@ export default function OutputBox({
   return (
     <div className="h-full flex flex-col bg-[#262626] rounded-lg border border-[#333] overflow-hidden">
       {/* ================= Breadcrumb Tabs ================= */}
-      <div className="flex items-center gap-2 px-4 py-2 bg-[#1f1f1f] border-b border-[#333] text-sm">
+      <div className="flex items-center gap-2 px-4 py-2 bg-[#2a2a2a] border-b border-[#333] text-sm">
         <button
           onClick={() => setTab("testcase")}
           className={`font-semibold ${tab === "testcase" ? "text-green-400" : "text-slate-400"
