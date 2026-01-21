@@ -22,21 +22,20 @@ const CodeEditor = ({
   setLanguage,
 }: CodeEditorProps) => {
   return (
-    <div className="flex flex-col w-full h-full bg-[#1e1e1e] overflow-hidden">
+    <div className="flex flex-col w-full h-full bg-[#1e1e1e] rounded-lg overflow-hidden border border-[#2f2f2f]">
+      
       {/* Top Bar */}
-      <div className="flex items-center justify-between px-4 h-10 bg-[#2a2a2a] border-b border-[#333]">
+      <div className="flex items-center justify-between px-4 py-2 bg-[#2a2a2a] border-b border-[#333]">
         <div className="flex items-center gap-2 text-sm text-slate-300">
           <span className="text-green-400 font-semibold">{`</>`}</span>
-          <span className="font-medium">Code</span>
+          <span className="font-medium">Code Editor</span>
         </div>
 
         {/* Language Selector */}
         <select
           value={language}
-          onChange={(e) =>
-            setLanguage(e.target.value as Language)
-          }
-          className="bg-[#1e1e1e] border border-[#333] text-slate-200 text-xs px-2 py-1 rounded focus:outline-none"
+          onChange={(e) => setLanguage(e.target.value as Language)}
+          className="bg-[#1e1e1e] border border-[#333] text-slate-200 text-xs px-3 py-1.5 rounded-md focus:outline-none focus:ring-1 focus:ring-green-400"
         >
           {LANGUAGES.map((lang) => (
             <option key={lang.value} value={lang.value}>
@@ -46,8 +45,8 @@ const CodeEditor = ({
         </select>
       </div>
 
-      {/* Monaco Editor */}
-      <div className="flex-1">
+      {/* Editor Wrapper */}
+      <div className="flex-1 p-2">
         <Editor
           theme="vs-dark"
           language={language}
@@ -55,9 +54,14 @@ const CodeEditor = ({
           onChange={(value) => setCode(value ?? "")}
           options={{
             fontSize: 14,
+            fontFamily: "Fira Code, monospace",
             minimap: { enabled: false },
             scrollBeyondLastLine: false,
             automaticLayout: true,
+            padding: {
+              top: 12,
+              bottom: 12,
+            },
           }}
         />
       </div>
