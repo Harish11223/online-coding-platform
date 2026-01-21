@@ -14,5 +14,8 @@ export interface TestResult {
 
 export interface TestCase {
   id: number;
-  input: string;
+  input: {
+    nums: number[];
+    target: number;
+  };
 }

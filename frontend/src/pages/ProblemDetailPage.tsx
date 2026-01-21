@@ -30,6 +30,7 @@ interface LayoutContext {
 interface Problem {
   id: number;
   title: string;
+  difficulty: "Easy" | "Medium" | "Hard";
   description: string;
   constraints: string;
   examples: {
@@ -202,13 +203,13 @@ export default function ProblemDetailPage() {
      Render
      ========================= */
   return (
-    <div className="grid grid-cols-1 p-2 lg:grid-cols-2 h-[calc(100vh-56px)] bg-[#1a1a1a] overflow-hidden text-[#eff1f6]">
+    <div className="grid grid-cols-1 p-2 lg:grid-cols-2 h-[calc(100vh-56px)] bg-[#0f0f0f] overflow-hidden text-[#eff1f6]">
 
       {/* LEFT PANEL */}
       <div className="h-full flex flex-col bg-[#262626] rounded-lg border border-[#333] overflow-hidden">
 
         {/* ================= Top Bar ================= */}
-        <div className="flex items-center gap-2 px-4 py-2 bg-[#1f1f1f] border-b border-[#333] text-sm">
+        <div className="flex items-center gap-2 px-4 py-2 bg-[#2a2a2a] border-b border-[#333] text-sm">
           <span className="font-semibold text-green-400">
             Description
           </span>
@@ -223,13 +224,14 @@ export default function ProblemDetailPage() {
           </h1>
 
           {/* Difficulty */}
-          <div className="inline-flex items-center gap-2 mb-6">
-            <span className="text-xs bg-[#3a3a3a] px-2 py-0.5 rounded">
+          <div className="inline-flex items-center mb-6">
+            <span className="text-xs bg-[#3a3a3a] px-2 py-0.5 rounded-l">
               difficulty
             </span>
-            <span className="text-xs bg-green-600 px-2 py-0.5 rounded text-white">
-              {problem.difficulty}
-            </span>
+            <div className="flex items-center">
+              {/* The parent no longer needs the background classes */}
+              <DifficultyBadge difficulty={problem.difficulty} />
+            </div>
           </div>
 
           {/* Description Text */}
@@ -289,10 +291,10 @@ export default function ProblemDetailPage() {
 
 
       {/* RIGHT PANEL */}
-      <div className="flex flex-col h-full bg-[#1a1a1a] overflow-hidden">
+      <div className="flex flex-col px-2 h-full bg-[#0f0f0f] overflow-hidden">
         {/* Editor (Top Half) */}
-        <div className="flex-[6] mb-2 min-h-0 overflow-hidden bg-[#1a1a1a]">
-          <div className="h-full px-2 overflow-hidden">
+        <div className="flex-[6] mb-2 min-h-0 overflow-hidden bg-[#0f0f0f]">
+          <div className="h-full overflow-hidden">
             <CodeEditor
               code={code}
               setCode={setCode}
@@ -304,7 +306,7 @@ export default function ProblemDetailPage() {
 
         {/* Output */}
         <div className="flex-[4] min-h-0 bg-[#1a1a1a] overflow-hidden">
-          <div className="h-full px-2 overflow-hidden">
+          <div className="h-full overflow-hidden">
             <OutputBox
               loading={loading}
               testCases={testCases}
@@ -315,5 +317,29 @@ export default function ProblemDetailPage() {
       </div>
 
     </div>
+  );
+}
+
+/* =========================
+   Difficulty Badge
+   ========================= */
+function DifficultyBadge({
+  difficulty,
+}: {
+  difficulty: "Easy" | "Medium" | "Hard";
+}) {
+  const bgColor =
+    difficulty === "Easy"
+      ? "bg-emerald-400"
+      : difficulty === "Medium"
+        ? "bg-yellow-400"
+        : "bg-rose-400";
+
+  return (
+    <span
+      className={`px-2 py-0.5 rounded text-[11px] font-bold text-white ${bgColor}`}
+    >
+      {difficulty}
+    </span>
   );
 }

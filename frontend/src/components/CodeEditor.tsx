@@ -23,29 +23,36 @@ const CodeEditor = ({
 }: CodeEditorProps) => {
   return (
     <div className="flex flex-col w-full h-full bg-[#1e1e1e] rounded-lg overflow-hidden border border-[#2f2f2f]">
-      
-      {/* Top Bar */}
-      <div className="flex items-center justify-between px-4 py-2 bg-[#2a2a2a] border-b border-[#333]">
+
+      {/* ================= Top Bar ================= */}
+      <div className="flex items-center px-4 py-2 bg-[#2a2a2a] border-b border-[#333]">
         <div className="flex items-center gap-2 text-sm text-slate-300">
           <span className="text-green-400 font-semibold">{`</>`}</span>
-          <span className="font-medium">Code Editor</span>
+          <span className="font-medium">Code</span>
         </div>
+      </div>
 
-        {/* Language Selector */}
+      {/* ================= Language Bar ================= */}
+      <div className="flex items-center gap-2 px-4 py-1.5 bg-[#1f1f1f] border-b border-[#333] text-sm">
         <select
           value={language}
           onChange={(e) => setLanguage(e.target.value as Language)}
-          className="bg-[#1e1e1e] border border-[#333] text-slate-200 text-xs px-3 py-1.5 rounded-md focus:outline-none focus:ring-1 focus:ring-green-400"
+          className="bg-transparent text-slate-200 text-sm focus:outline-none"
         >
           {LANGUAGES.map((lang) => (
-            <option key={lang.value} value={lang.value}>
+            <option
+              key={lang.value}
+              value={lang.value}
+              className="bg-[#1e1e1e]"
+            >
               {lang.label}
             </option>
           ))}
         </select>
+
       </div>
 
-      {/* Editor Wrapper */}
+      {/* ================= Editor Wrapper ================= */}
       <div className="flex-1 p-2">
         <Editor
           theme="vs-dark"
@@ -65,6 +72,7 @@ const CodeEditor = ({
           }}
         />
       </div>
+
     </div>
   );
 };

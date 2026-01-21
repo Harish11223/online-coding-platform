@@ -73,8 +73,8 @@ function DifficultyBadge({
     difficulty === "Easy"
       ? "text-emerald-400"
       : difficulty === "Medium"
-      ? "text-yellow-400"
-      : "text-rose-400";
+        ? "text-yellow-400"
+        : "text-rose-400";
 
   return <span className={`font-semibold ${color}`}>{difficulty}</span>;
 }

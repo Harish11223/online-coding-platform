@@ -19,20 +19,23 @@ export default function OutputBox({
 
   return (
     <div className="h-full flex flex-col bg-[#262626] rounded-lg border border-[#333] overflow-hidden">
-      {/* ================= Breadcrumb Tabs ================= */}
-      <div className="flex items-center gap-2 px-4 py-2 bg-[#1f1f1f] border-b border-[#333] text-sm">
+      
+      {/* ================= Tabs ================= */}
+      <div className="flex items-center gap-2 px-4 py-2 bg-[#2a2a2a] border-b border-[#333] text-sm">
         <button
           onClick={() => setTab("testcase")}
-          className={`font-semibold ${tab === "testcase" ? "text-green-400" : "text-slate-400"
-            }`}
+          className={`font-semibold ${
+            tab === "testcase" ? "text-green-400" : "text-slate-400"
+          }`}
         >
           Testcase
         </button>
         <span className="text-slate-500">›</span>
         <button
           onClick={() => setTab("result")}
-          className={`font-semibold ${tab === "result" ? "text-green-400" : "text-slate-400"
-            }`}
+          className={`font-semibold ${
+            tab === "result" ? "text-green-400" : "text-slate-400"
+          }`}
         >
           Test Result
         </button>
@@ -40,58 +43,62 @@ export default function OutputBox({
 
       {/* ================= Content ================= */}
       <div className="flex-1 p-4 overflow-hidden">
+
         {/* ================= TESTCASE TAB ================= */}
         {tab === "testcase" && (
           <div className="h-full flex flex-col">
+
             {/* Case Tabs */}
             <div className="flex items-center gap-2 mb-4">
               {testCases.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setActiveCase(i)}
-                  className={`px-3 py-1 rounded-md text-sm ${i === activeCase
+                  className={`px-3 py-1 rounded-md text-sm ${
+                    i === activeCase
                       ? "bg-[#3a3a3a] text-white"
                       : "text-slate-400 hover:bg-[#333]"
-                    }`}
+                  }`}
                 >
                   Case {i + 1}
                 </button>
               ))}
-              <button className="px-3 py-1 text-slate-400 hover:bg-[#333] rounded-md">
-                +
-              </button>
             </div>
 
             {/* Case Content */}
-            <div className="space-y-4">
-              {tc ? (
-                <>
-                  {/* nums */}
-                  <div>
-                    <p className="text-xs text-slate-400 mb-1">nums =</p>
-                    <div className="bg-[#3a3a3a] rounded-md px-4 py-2 font-mono text-sm text-white">
-                      {tc.input.split("\n")[1] || ""}
+            {tc ? (
+              typeof tc.input === "object" && tc.input !== null ? (
+                <div className="space-y-4">
+                  {Object.entries(tc.input).map(([key, value]) => (
+                    <div key={key}>
+                      <p className="text-xs text-slate-400 mb-1">
+                        {key} =
+                      </p>
+                      <div className="bg-[#3a3a3a] rounded-md px-4 py-2 font-mono text-sm text-white whitespace-pre-wrap">
+                        {JSON.stringify(value)}
+                      </div>
                     </div>
-                  </div>
-
-                  {/* target */}
-                  <div>
-                    <p className="text-xs text-slate-400 mb-1">target =</p>
-                    <div className="bg-[#3a3a3a] rounded-md px-4 py-2 font-mono text-sm text-white">
-                      {tc.input.split("\n")[2] || ""}
-                    </div>
-                  </div>
-                </>
+                  ))}
+                </div>
               ) : (
-                <p className="text-slate-500 italic">
-                  No test case selected
-                </p>
-              )}
-            </div>
+                <div>
+                  <p className="text-xs text-slate-400 mb-1">
+                    Input
+                  </p>
+                  <pre className="bg-[#3a3a3a] rounded-md px-4 py-2 font-mono text-sm text-white whitespace-pre-wrap">
+                    {tc.input}
+                  </pre>
+                </div>
+              )
+            ) : (
+              <p className="text-slate-500 italic">
+                No test case selected
+              </p>
+            )}
           </div>
         )}
 
-        {/* ================= TEST RESULT TAB ================= */}
+        {/* ================= RESULT TAB ================= */}
         {tab === "result" && (
           <div className="h-full flex items-center justify-center">
             {loading ? (
