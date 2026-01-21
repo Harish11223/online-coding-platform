@@ -55,10 +55,7 @@ export const getProblemById = async (req: Request, res: Response) => {
 /* =========================
    GET PROBLEM TEST CASES
    ========================= */
-/**
- * GET /api/problems/:problemId/testcases
- * Returns ONLY visible test case inputs
- */
+
 export const getProblemTestCases = async (
   req: Request,
   res: Response
@@ -68,14 +65,17 @@ export const getProblemTestCases = async (
 
     const { rows } = await pool.query(
       `
-      SELECT id, input
+      SELECT
+      id,
+      input_json AS input,
+      is_hidden
       FROM test_cases
       WHERE problem_id = $1
-        AND is_hidden = false
-      ORDER BY id ASC
-      `,
+      ORDER BY id ASC;
+  `,
       [problemId]
     );
+
 
     res.json({
       testCases: rows,

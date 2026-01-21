@@ -30,6 +30,7 @@ interface LayoutContext {
 interface Problem {
   id: number;
   title: string;
+  difficulty: "Easy" | "Medium" | "Hard";
   description: string;
   constraints: string;
   examples: {
@@ -223,13 +224,14 @@ export default function ProblemDetailPage() {
           </h1>
 
           {/* Difficulty */}
-          <div className="inline-flex items-center gap-2 mb-6">
-            <span className="text-xs bg-[#3a3a3a] px-2 py-0.5 rounded">
+          <div className="inline-flex items-center mb-6">
+            <span className="text-xs bg-[#3a3a3a] px-2 py-0.5 rounded-l">
               difficulty
             </span>
-            <span className="text-xs bg-green-600 px-2 py-0.5 rounded text-white">
-              {problem.difficulty}
-            </span>
+            <div className="flex items-center">
+              {/* The parent no longer needs the background classes */}
+              <DifficultyBadge difficulty={problem.difficulty} />
+            </div>
           </div>
 
           {/* Description Text */}
@@ -315,5 +317,29 @@ export default function ProblemDetailPage() {
       </div>
 
     </div>
+  );
+}
+
+/* =========================
+   Difficulty Badge
+   ========================= */
+function DifficultyBadge({
+  difficulty,
+}: {
+  difficulty: "Easy" | "Medium" | "Hard";
+}) {
+  const bgColor =
+    difficulty === "Easy"
+      ? "bg-emerald-400"
+      : difficulty === "Medium"
+        ? "bg-yellow-400"
+        : "bg-rose-400";
+
+  return (
+    <span
+      className={`px-2 py-0.5 rounded text-[11px] font-bold text-white ${bgColor}`}
+    >
+      {difficulty}
+    </span>
   );
 }
