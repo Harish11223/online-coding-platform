@@ -23,18 +23,16 @@ export default function OutputBox({
       <div className="flex items-center gap-2 px-4 py-2 bg-[#1f1f1f] border-b border-[#333] text-sm">
         <button
           onClick={() => setTab("testcase")}
-          className={`font-semibold ${
-            tab === "testcase" ? "text-green-400" : "text-slate-400"
-          }`}
+          className={`font-semibold ${tab === "testcase" ? "text-green-400" : "text-slate-400"
+            }`}
         >
           Testcase
         </button>
         <span className="text-slate-500">›</span>
         <button
           onClick={() => setTab("result")}
-          className={`font-semibold ${
-            tab === "result" ? "text-green-400" : "text-slate-400"
-          }`}
+          className={`font-semibold ${tab === "result" ? "text-green-400" : "text-slate-400"
+            }`}
         >
           Test Result
         </button>
@@ -51,11 +49,10 @@ export default function OutputBox({
                 <button
                   key={i}
                   onClick={() => setActiveCase(i)}
-                  className={`px-3 py-1 rounded-md text-sm ${
-                    i === activeCase
+                  className={`px-3 py-1 rounded-md text-sm ${i === activeCase
                       ? "bg-[#3a3a3a] text-white"
                       : "text-slate-400 hover:bg-[#333]"
-                  }`}
+                    }`}
                 >
                   Case {i + 1}
                 </button>

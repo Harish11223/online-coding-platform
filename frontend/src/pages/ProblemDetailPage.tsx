@@ -202,65 +202,109 @@ export default function ProblemDetailPage() {
      Render
      ========================= */
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 h-[calc(100vh-56px)] bg-[#1a1a1a] overflow-hidden text-[#eff1f6]">
+    <div className="grid grid-cols-1 p-2 lg:grid-cols-2 h-[calc(100vh-56px)] bg-[#1a1a1a] overflow-hidden text-[#eff1f6]">
+
       {/* LEFT PANEL */}
-      <div className="border-r border-[#333] overflow-y-auto p-8">
-        <h1 className="text-2xl font-semibold mb-4">
-          {problem.title}
-        </h1>
+      <div className="h-full flex flex-col bg-[#262626] rounded-lg border border-[#333] overflow-hidden">
 
-        <p className="whitespace-pre-line text-[#eff1f6d9] mb-8">
-          {problem.description}
-        </p>
-
-        <h3 className="text-sm font-bold mb-4">Examples</h3>
-        <div className="space-y-6">
-          {problem.examples.map((ex, i) => (
-            <div
-              key={i}
-              className="bg-[#2a2a2a] p-4 rounded-lg border border-[#333] font-mono text-sm"
-            >
-              <p><b>Input:</b> {ex.input}</p>
-              <p><b>Output:</b> {ex.output}</p>
-              {ex.explanation && (
-                <p className="italic mt-2">{ex.explanation}</p>
-              )}
-            </div>
-          ))}
+        {/* ================= Top Bar ================= */}
+        <div className="flex items-center gap-2 px-4 py-2 bg-[#1f1f1f] border-b border-[#333] text-sm">
+          <span className="font-semibold text-green-400">
+            Description
+          </span>
         </div>
 
-        <h3 className="text-sm font-bold mt-8 mb-4">
-          Constraints
-        </h3>
-        <div className="space-y-2">
-          {problem.constraints.split("\n").map((c, i) => (
-            <div
-              key={i}
-              className="text-xs font-mono bg-[#2a2a2a] p-2 rounded border border-[#333]"
-            >
-              {c}
-            </div>
-          ))}
+        {/* ================= Content ================= */}
+        <div className="flex-1 p-4 overflow-y-auto text-slate-200">
+
+          {/* Title */}
+          <h1 className="text-2xl font-semibold mb-2">
+            {problem.title}
+          </h1>
+
+          {/* Difficulty */}
+          <div className="inline-flex items-center gap-2 mb-6">
+            <span className="text-xs bg-[#3a3a3a] px-2 py-0.5 rounded">
+              difficulty
+            </span>
+            <span className="text-xs bg-green-600 px-2 py-0.5 rounded text-white">
+              {problem.difficulty}
+            </span>
+          </div>
+
+          {/* Description Text */}
+          <div className="space-y-4 text-sm leading-relaxed text-[#eff1f6d9] mb-8">
+            {problem.description.split("\n\n").map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
+          </div>
+
+          {/* Examples */}
+          <h3 className="text-sm font-bold mb-4">
+            Example
+          </h3>
+
+          <div className="space-y-6 mb-8">
+            {problem.examples.map((ex, i) => (
+              <div
+                key={i}
+                className="pl-4 border-l border-[#333] font-mono text-sm space-y-1"
+              >
+                <p>
+                  <span className="font-semibold">Input:</span>{" "}
+                  {ex.input}
+                </p>
+                <p>
+                  <span className="font-semibold">Output:</span>{" "}
+                  {ex.output}
+                </p>
+                {ex.explanation && (
+                  <p className="text-slate-400">
+                    <span className="font-semibold">Explanation:</span>{" "}
+                    {ex.explanation}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Constraints */}
+          <h3 className="text-sm font-bold mb-4">
+            Constraints
+          </h3>
+
+          <div className="space-y-2">
+            {problem.constraints.split("\n").map((c, i) => (
+              <div
+                key={i}
+                className="bg-[#3a3a3a] rounded-md px-4 py-2 text-xs font-mono text-white"
+              >
+                {c}
+              </div>
+            ))}
+          </div>
+
         </div>
       </div>
 
+
       {/* RIGHT PANEL */}
-      <div className="flex flex-col h-full bg-[#1e1e1e] overflow-hidden">
+      <div className="flex flex-col h-full bg-[#1a1a1a] overflow-hidden">
         {/* Editor (Top Half) */}
-        <div className="flex-[6] min-h-0 overflow-hidden bg-[#1e1e1e]">
-          <CodeEditor
-            code={code}
-            setCode={setCode}
-            language={language}
-            setLanguage={setLanguage}
-          />
+        <div className="flex-[6] mb-2 min-h-0 overflow-hidden bg-[#1a1a1a]">
+          <div className="h-full px-2 overflow-hidden">
+            <CodeEditor
+              code={code}
+              setCode={setCode}
+              language={language}
+              setLanguage={setLanguage}
+            />
+          </div>
         </div>
-
-
 
         {/* Output */}
         <div className="flex-[4] min-h-0 bg-[#1a1a1a] overflow-hidden">
-          <div className="h-full p-4 overflow-hidden">
+          <div className="h-full px-2 overflow-hidden">
             <OutputBox
               loading={loading}
               testCases={testCases}
@@ -269,6 +313,7 @@ export default function ProblemDetailPage() {
           </div>
         </div>
       </div>
+
     </div>
   );
 }
